@@ -31,7 +31,7 @@ export function TireSmoke({ active, position }: { active: boolean, position: [nu
       }
 
       const scale = p.t * 3;
-      const opacity = active ? (1 - p.t) * 0.3 : 0;
+      // const opacity = active ? (1 - p.t) * 0.3 : 0; // Not used in this version
       
       dummy.position.copy(p.pos).add(new THREE.Vector3(0, p.t * 3, -p.t * 2));
       dummy.scale.set(scale, scale, scale);

@@ -1,0 +1,104 @@
+/* Professional Garage Styles */
+.garage-tabs {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 10px;
+}
+
+.garage-tabs button {
+  background: none;
+  border: none;
+  color: #888;
+  padding: 10px 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+}
+
+.garage-tabs button.active {
+  color: #fff;
+  border-bottom: 2px solid #ff4d4d;
+}
+
+.car-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-top: 15px;
+}
+
+.car-selector {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 15px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.car-selector:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.car-selector.active {
+  border-color: #ff4d4d;
+  background: rgba(255, 77, 77, 0.1);
+}
+
+.car-name {
+  font-weight: 700;
+  display: block;
+  margin-bottom: 10px;
+}
+
+.car-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.stat-bar {
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.stat-bar .fill {
+  height: 100%;
+  background: #fff;
+}
+
+.stat-bar.drift .fill {
+  background: #ff4d4d;
+}
+
+.equipped-badge {
+  color: #4ade80;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Scrollable Content */
+.scrollable {
+  max-height: 500px;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+.scrollable::-webkit-scrollbar {
+  width: 5px;
+}
+
+.scrollable::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}

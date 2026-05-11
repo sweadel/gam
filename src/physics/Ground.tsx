@@ -1,6 +1,4 @@
 import { usePlane } from '@react-three/cannon';
-import { useTexture } from '@react-three/drei';
-import * as THREE from 'three';
 
 export function Ground() {
   const [ref] = usePlane(() => ({

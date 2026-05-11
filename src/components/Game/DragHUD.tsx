@@ -1,5 +1,5 @@
 import { useStore } from '../../store/useStore';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 export function DragHUD() {
   const { dragStats, environment } = useStore();

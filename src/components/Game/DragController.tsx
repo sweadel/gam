@@ -1,7 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { useStore } from '../../store/useStore';
-import * as THREE from 'three';
 
 export function DragController({ chassisApi }: { chassisApi: any }) {
   const env = useStore((state) => state.environment);

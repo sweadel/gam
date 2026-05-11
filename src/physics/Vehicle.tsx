@@ -28,15 +28,15 @@ export function Vehicle() {
   // 2. Advanced Wheel Physics
   const wheelInfo = {
     radius: 0.38,
-    directionLocal: [0, -1, 0],
+    directionLocal: [0, -1, 0] as [number, number, number],
     suspensionStiffness: suspension.stiffness + 20, // Stiffer for drift
     suspensionRestLength: 0.25,
     maxSuspensionForce: 100000,
     maxSuspensionTravel: 0.3,
     dampingRelaxation: 2.5,
     dampingCompression: 4.5,
-    axleLocal: [-1, 0, 0],
-    chassisConnectionPointLocal: [1, 0, 1],
+    axleLocal: [-1, 0, 0] as [number, number, number],
+    chassisConnectionPointLocal: [1, 0, 1] as [number, number, number],
     useCustomSlidingFrictionForce: true,
     customSlidingFrictionForce: 0.8,
     frictionSlip: 1.5, // Lower for more drift
@@ -44,10 +44,10 @@ export function Vehicle() {
   };
 
   const wheelInfos = [
-    { ...wheelInfo, chassisConnectionPointLocal: [-0.85, -0.1, 1.4], isFrontWheel: true },
-    { ...wheelInfo, chassisConnectionPointLocal: [0.85, -0.1, 1.4], isFrontWheel: true },
-    { ...wheelInfo, chassisConnectionPointLocal: [-0.85, -0.1, -1.4], isFrontWheel: false },
-    { ...wheelInfo, chassisConnectionPointLocal: [0.85, -0.1, -1.4], isFrontWheel: false },
+    { ...wheelInfo, chassisConnectionPointLocal: [-0.85, -0.1, 1.4] as [number, number, number], isFrontWheel: true },
+    { ...wheelInfo, chassisConnectionPointLocal: [0.85, -0.1, 1.4] as [number, number, number], isFrontWheel: true },
+    { ...wheelInfo, chassisConnectionPointLocal: [-0.85, -0.1, -1.4] as [number, number, number], isFrontWheel: false },
+    { ...wheelInfo, chassisConnectionPointLocal: [0.85, -0.1, -1.4] as [number, number, number], isFrontWheel: false },
   ];
 
   const [vehicle, vehicleApi] = useRaycastVehicle(() => ({
@@ -65,7 +65,7 @@ export function Vehicle() {
   const gearRatios = [3.5, 2.3, 1.5, 1.2, 1.0, 0.8];
   const currentGear = useRef(0);
 
-  useFrame((state, delta) => {
+  useFrame(() => {
     if (mode !== 'drive') return;
 
     const { forward, backward, left, right, brake, reset } = controls;
@@ -123,8 +123,6 @@ export function Vehicle() {
     }
   });
 
-  const carColor = useStore((state) => state.selectedCar.color);
-  const carBrand = useStore((state) => state.selectedCar.brand);
   const isDrifting = Math.abs(velocity.current[0]) > 2.5 && (Math.sqrt(velocity.current[0]**2 + velocity.current[2]**2)) > 5;
 
   const steerValue = useRef(0);
@@ -136,7 +134,7 @@ export function Vehicle() {
   return (
     <group ref={vehicle}>
       <group ref={chassisBody}>
-        <CarVisual color={carColor} brand={carBrand} steeringAngle={steerValue.current} />
+        <CarVisual steeringAngle={steerValue.current} />
         <ChaseCamera targetRef={chassisBody} />
         <DragController chassisApi={chassisApi} />
         

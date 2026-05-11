@@ -1,7 +1,5 @@
-import { Box, Cylinder, Plane, Sphere } from '@react-three/drei';
-import { usePlane, useBox } from '@react-three/cannon';
+import { useBox, usePlane } from '@react-three/cannon';
 import { useStore } from '../store/useStore';
-import * as THREE from 'three';
 import { useMemo } from 'react';
 
 export function EnvironmentMap() {
@@ -13,7 +11,6 @@ export function EnvironmentMap() {
 
   const roadWidth = 20;
   const blockSize = 60;
-  const sidewalkWidth = 3;
 
   // 1. Enhanced Buildings with Windows
   const Building = ({ position, args, color }: { position: [number, number, number], args: [number, number, number], color: string }) => {
@@ -144,11 +141,38 @@ export function EnvironmentMap() {
             <planeGeometry args={[20, 800]} />
             <meshStandardMaterial color="#111" />
           </mesh>
-          {/* Spectator Stands */}
           <mesh position={[15, 2, -100]}>
             <boxGeometry args={[5, 10, 200]} />
             <meshStandardMaterial color="#222" />
           </mesh>
+        </group>
+      )}
+
+      {env === 'touge' && (
+        <group>
+          {/* Winding Road Segments */}
+          {Array.from({ length: 40 }).map((_, i) => {
+            const angle = (i / 40) * Math.PI * 4;
+            const x = Math.sin(angle) * 100;
+            const z = -i * 15;
+            return (
+              <group key={i} position={[x, -0.4, z]} rotation={[0, Math.cos(angle) * 0.5, 0]}>
+                <mesh rotation={[-Math.PI / 2, 0, 0]}>
+                  <planeGeometry args={[12, 16]} />
+                  <meshStandardMaterial color="#111" />
+                </mesh>
+                {/* Sidewall / Guardrail */}
+                <mesh position={[6.5, 1, 0]}>
+                   <boxGeometry args={[0.2, 1, 16]} />
+                   <meshStandardMaterial color="#888" />
+                </mesh>
+                <mesh position={[-6.5, 1, 0]}>
+                   <boxGeometry args={[0.2, 1, 16]} />
+                   <meshStandardMaterial color="#888" />
+                </mesh>
+              </group>
+            );
+          })}
         </group>
       )}
 
