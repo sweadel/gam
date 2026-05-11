@@ -1,0 +1,361 @@
+:root {
+  --primary: #ff4d4d;
+  --bg: #050505;
+  --glass: rgba(255, 255, 255, 0.05);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --font-main: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--bg);
+  color: white;
+  font-family: var(--font-main);
+  overflow: hidden;
+}
+
+.garage-ui {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 400px;
+  background: linear-gradient(to left, rgba(0,0,0,0.8), transparent);
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  pointer-events: none;
+  direction: rtl;
+}
+
+.garage-ui > * {
+  pointer-events: auto;
+}
+
+.glass-panel {
+  background: var(--glass);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.title-glow {
+  font-size: 24px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--primary);
+  text-shadow: 0 0 10px rgba(255, 77, 77, 0.5);
+  margin-bottom: 20px;
+}
+
+.part-section {
+  margin-bottom: 24px;
+}
+
+.part-section h3 {
+  font-size: 14px;
+  color: #888;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--glass-border);
+  padding-bottom: 4px;
+}
+
+.part-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.part-btn {
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  color: #ccc;
+  padding: 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 13px;
+  text-align: center;
+}
+
+.part-btn:hover {
+  background: rgba(255, 77, 77, 0.1);
+  border-color: var(--primary);
+  color: white;
+}
+
+.part-btn.active {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+  box-shadow: 0 0 15px rgba(255, 77, 77, 0.4);
+}
+
+.game-hud {
+  position: absolute;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.drive-hud-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.style-score {
+  padding: 10px 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-color: var(--primary);
+  min-width: 150px;
+}
+
+.score-label {
+  font-size: 10px;
+  color: #888;
+  text-transform: uppercase;
+}
+
+.score-value {
+  font-size: 24px;
+  font-weight: 900;
+  color: white;
+  text-shadow: 0 0 10px var(--primary);
+}
+
+.drive-hud {
+  width: 300px;
+  padding: 15px;
+  margin-bottom: 20px;
+}
+
+.rpm-meter {
+  width: 100%;
+  height: 6px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.rpm-bar {
+  height: 100%;
+  transition: width 0.1s linear, background 0.2s ease;
+}
+
+.main-menu {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  direction: rtl;
+}
+
+.menu-container {
+  width: 600px;
+  max-width: 90vw;
+  padding: 50px;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  background: rgba(0, 0, 0, 0.85);
+  box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+}
+
+.menu-section h3 {
+  font-size: 16px;
+  color: var(--primary);
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.car-list, .env-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.menu-btn {
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  color: white;
+  padding: 15px 20px;
+  border-radius: 8px;
+  text-align: right;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.menu-btn:hover {
+  background: rgba(255, 77, 77, 0.1);
+  border-color: var(--primary);
+}
+
+.menu-btn.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  font-weight: 700;
+}
+
+.menu-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.action-btn {
+  padding: 20px;
+  border-radius: 12px;
+  border: none;
+  font-size: 18px;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.garage-btn {
+  background: #333;
+  color: white;
+}
+
+.start-btn {
+  background: var(--primary);
+  color: white;
+  box-shadow: 0 10px 30px rgba(255, 77, 77, 0.4);
+}
+
+.action-btn:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.1);
+}
+
+.action-btn:active {
+  transform: translateY(0);
+}
+
+.hp-badge {
+  background: var(--primary);
+  color: white;
+  padding: 5px 15px;
+  border-radius: 15px;
+  font-weight: 900;
+  font-size: 1.2rem;
+  box-shadow: 0 0 15px rgba(255, 77, 77, 0.4);
+}
+
+.part-item {
+  margin-bottom: 25px;
+}
+
+.part-item label {
+  display: block;
+  font-size: 0.9rem;
+  color: #888;
+  margin-bottom: 10px;
+}
+
+.part-item select {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+  padding: 12px;
+  border-radius: 10px;
+  outline: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.part-item select:focus {
+  border-color: var(--primary);
+}
+
+.drive-btn {
+  width: 100%;
+  margin-top: 30px;
+  background: var(--primary);
+  border: none;
+  color: white;
+  padding: 15px;
+  border-radius: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.nav-btn {
+  background: var(--primary);
+  border: none;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 20px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 5px 15px rgba(255, 77, 77, 0.3);
+}
+
+.nav-btn:hover {
+  transform: scale(1.05);
+}
+
+.game-hud {
+  position: absolute;
+  top: 40px;
+  left: 40px;
+  width: 250px;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.stat-label { color: #888; font-size: 12px; }
+.stat-value { font-weight: 700; color: white; }
+
+.stat-bar-bg {
+  width: 100%;
+  height: 4px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.stat-bar-fill {
+  height: 100%;
+  background: var(--primary);
+  transition: width 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
