@@ -64,18 +64,33 @@ export function CarVisual({ steeringAngle = 0 }: { steeringAngle?: number }) {
       <mesh position={[0.9 + archWidth, -0.1, -1.4]} rotation={[0, 0, Math.PI/2]}><cylinderGeometry args={[0.48, 0.48, 0.2, 16]} /><meshStandardMaterial color={brand === 'Nissan' ? '#111' : paintColor} /></mesh>
       <mesh position={[-0.9 - archWidth, -0.1, -1.4]} rotation={[0, 0, Math.PI/2]}><cylinderGeometry args={[0.48, 0.48, 0.2, 16]} /><meshStandardMaterial color={brand === 'Nissan' ? '#111' : paintColor} /></mesh>
 
-      {/* --- BRAND SPECIFIC BODIES --- */}
-      {brand === 'BMW' && (
+      {/* --- NEW CAR MODELS --- */}
+      {selectedCar.id === 'ae86' && (
+        <group position={[0, 0.4, 0]}>
+           <mesh position={[0, 0.3, -0.2]} castShadow><boxGeometry args={[1.5, 0.6, 2.5]} /><meshPhysicalMaterial color={paintColor} metalness={0.5} roughness={0.2} /></mesh>
+           <mesh position={[0, 0.7, -0.4]} castShadow><boxGeometry args={[1.4, 0.4, 1.2]} /><meshPhysicalMaterial color="#111" transparent opacity={0.8} /></mesh>
+        </group>
+      )}
+
+      {selectedCar.id === 'r34' && (
+        <group position={[0, 0.4, 0]}>
+           <mesh position={[0, 0.4, -0.1]} castShadow><boxGeometry args={[1.7, 0.7, 3.8]} /><meshPhysicalMaterial color={paintColor} metalness={0.9} clearcoat={1} /></mesh>
+           <mesh position={[0, 0.8, -0.5]} castShadow><boxGeometry args={[1.5, 0.3, 1.6]} /><meshPhysicalMaterial color="#111" transparent opacity={0.8} /></mesh>
+           <mesh position={[0, 1.0, -1.7]} castShadow><boxGeometry args={[1.6, 0.05, 0.4]} /><meshStandardMaterial color="#111" /></mesh>
+        </group>
+      )}
+
+      {selectedCar.id === 'm3' && (
         <group position={[0, 0, -damageShift]}>
           <mesh position={[0, 0.6, -0.3]} castShadow><boxGeometry args={[1.5, 0.7, 1.8]} /><meshPhysicalMaterial color={paintColor} metalness={0.8} clearcoat={1} /></mesh>
           <mesh position={[0, 0.35, 1.2]} rotation={[-0.1, 0, 0]}><boxGeometry args={[1.7, 0.1, 1.5]} /><meshPhysicalMaterial color={paintColor} metalness={0.8} clearcoat={1} /></mesh>
         </group>
       )}
-      {brand === 'Nissan' && (
+      {selectedCar.id === 's15' && (
         <group><mesh position={[0, 0.5, -0.3]} castShadow scale={[1, 1 - (damage/200), 1]}><sphereGeometry args={[1, 32, 32]} /><meshPhysicalMaterial color={paintColor} metalness={0.8} clearcoat={1} /></mesh>
         <mesh position={[0, 0.35, 1.1]} rotation={[-0.15, 0, 0]}><boxGeometry args={[1.6, 0.1, 1.6]} /><meshPhysicalMaterial color={paintColor} metalness={0.8} clearcoat={1} /></mesh></group>
       )}
-      {brand === 'Toyota' && (
+      {selectedCar.id === 'supra' && (
         <group><mesh position={[0, 0.55, -0.5]} castShadow scale={[1.4, 0.6, 2]}><sphereGeometry args={[1, 32, 32]} /><meshPhysicalMaterial color={paintColor} metalness={0.8} clearcoat={1} /></mesh>
         <mesh position={[0, 0.35, 1.4]} rotation={[-0.05, 0, 0]}><boxGeometry args={[1.7, 0.1, 1.8]} /><meshPhysicalMaterial color={paintColor} metalness={0.8} clearcoat={1} /></mesh></group>
       )}
@@ -95,12 +110,6 @@ export function CarVisual({ steeringAngle = 0 }: { steeringAngle?: number }) {
         <boxGeometry args={[0.5, 0.2, 0.05]} />
         <meshStandardMaterial color="#eee" />
       </mesh>
-
-      <group position={[0, 0.4, -1.9]}>
-        <mesh position={[0, 0.4, 0]}><boxGeometry args={[1.95, 0.05, 0.6]} /><meshStandardMaterial color="#111" /></mesh>
-        <mesh position={[-0.8, 0.2, 0]}><boxGeometry args={[0.05, 0.4, 0.1]} /><meshStandardMaterial color="#111" /></mesh>
-        <mesh position={[0.8, 0.2, 0]}><boxGeometry args={[0.05, 0.4, 0.1]} /><meshStandardMaterial color="#111" /></mesh>
-      </group>
     </group>
   );
 }

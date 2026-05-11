@@ -44,7 +44,6 @@ body {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
-/* UI Components */
 .loading {
   position: fixed;
   inset: 0;
@@ -58,7 +57,6 @@ body {
   font-weight: 700;
 }
 
-/* Main Menu */
 .menu-overlay {
   position: absolute;
   inset: 0;
@@ -125,11 +123,6 @@ body {
   border: 1px solid var(--glass-border);
 }
 
-.btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.1);
-}
-
-/* Garage UI */
 .garage-overlay {
   position: absolute;
   inset: 0;
@@ -265,33 +258,33 @@ body {
   background: rgba(255, 77, 77, 0.05);
 }
 
-.part-label { font-weight: 600; font-size: 0.9rem; }
-.part-price { color: var(--success); font-weight: 800; font-size: 0.85rem; }
-.equipped-badge { color: var(--success); font-size: 0.7rem; display: flex; align-items: center; gap: 3px; }
-
-.weather-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 10px;
+.record-card {
+  display: flex;
+  justify-content: space-between;
+  padding: 15px;
+  background: rgba(255,255,255,0.03);
+  border-radius: 10px;
+  margin-bottom: 8px;
+  font-weight: 600;
 }
 
-.weather-grid button {
-  background: rgba(255,255,255,0.05);
-  border: 1px solid var(--glass-border);
-  color: white;
-  padding: 12px;
-  border-radius: 10px;
-  cursor: pointer;
+.setting-row {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 5px;
-  font-size: 0.8rem;
+  gap: 10px;
+  margin-bottom: 20px;
 }
 
-.weather-grid button.active {
-  background: var(--primary);
-  border-color: var(--primary);
+.setting-row label {
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+input[type="range"] {
+  width: 100%;
+  accent-color: var(--primary);
 }
 
 .garage-footer {
@@ -308,7 +301,6 @@ body {
 .scrollable::-webkit-scrollbar { width: 4px; }
 .scrollable::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
 
-/* Driving HUD */
 .drive-hud-container {
   position: absolute;
   inset: 0;

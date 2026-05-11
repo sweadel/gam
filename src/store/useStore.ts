@@ -25,8 +25,10 @@ interface CarType {
 }
 
 export const CARS_DATABASE: CarType[] = [
-  { id: 'm3', name: 'M3 Drift King', brand: 'BMW', color: '#ff4d4d', stats: { speed: 85, drift: 95, accel: 80 } },
+  { id: 'ae86', name: 'AE86 Trueno', brand: 'Toyota', color: '#ffffff', stats: { speed: 65, drift: 100, accel: 60 } },
   { id: 's15', name: 'Silvia S15 Spec-D', brand: 'Nissan', color: '#4d4dff', stats: { speed: 75, drift: 100, accel: 85 } },
+  { id: 'm3', name: 'M3 Drift King', brand: 'BMW', color: '#ff4d4d', stats: { speed: 85, drift: 95, accel: 80 } },
+  { id: 'r34', name: 'Skyline R34 GT-R', brand: 'Nissan', color: '#0000ff', stats: { speed: 100, drift: 85, accel: 100 } },
   { id: 'supra', name: 'Supra MK4 Legend', brand: 'Toyota', color: '#ffffff', stats: { speed: 100, drift: 80, accel: 95 } },
 ];
 
@@ -65,7 +67,7 @@ export const PARTS_DATABASE: any = {
 interface GameState {
   mode: 'menu' | 'garage' | 'drive';
   selectedCar: CarType;
-  environment: 'circle' | 'city' | 'drag' | 'touge';
+  environment: 'city' | 'drag' | 'touge' | 'circuit';
   weather: 'clear' | 'rain' | 'fog';
   camera: 'chase' | 'cockpit';
   engine: EngineConfig;
@@ -79,6 +81,8 @@ interface GameState {
   rpm: number;
   gear: number;
   stylePoints: number;
+  records: { topSpeed: number; longestDrift: number; totalStylePoints: number };
+  settings: { soundVolume: number; graphicsQuality: 'low' | 'high'; steeringSensitivity: number };
   dragStats: {
     active: boolean;
     startTime: number | null;
@@ -90,12 +94,13 @@ interface GameState {
   
   setMode: (mode: 'menu' | 'garage' | 'drive') => void;
   setSelectedCar: (car: CarType) => void;
-  setEnvironment: (env: 'circle' | 'city' | 'drag' | 'touge') => void;
+  setEnvironment: (env: 'city' | 'drag' | 'touge' | 'circuit') => void;
   setWeather: (w: 'clear' | 'rain' | 'fog') => void;
   setCamera: (c: 'chase' | 'cockpit') => void;
   updateEngine: (updates: Partial<EngineConfig>) => void;
   updateVisuals: (updates: Partial<VisualConfig>) => void;
   updateSuspension: (updates: any) => void;
+  updateSettings: (updates: Partial<GameState['settings']>) => void;
   updateTireStats: (updates: Partial<{ temp: number, wear: number }>) => void;
   addStylePoints: (points: number) => void;
   addDamage: (amount: number) => void;
@@ -103,7 +108,7 @@ interface GameState {
   useNitro: (amount: number) => void;
   buyPart: (id: string, price: number) => boolean;
   updateRPM: (rpm: number, gear: number) => void;
-  updateDragStats: (updates: Partial<{ active: boolean; startTime: number | null; finishTime: number | null; time0to100: number | null; quarterMileTime: number | null; }>) => void;
+  updateDragStats: (updates: Partial<GameState['dragStats']>) => void;
   checkMissions: (currentSpeed: number, currentDrift: number) => void;
 }
 
@@ -126,7 +131,7 @@ export const useStore = create<GameState>()(
         bodyKit: 'stock',
         rims: 'standard',
         neon: 'none',
-        paintColor: '#ff4d4d',
+        paintColor: '#ffffff',
       },
       suspension: { stiffness: 50, height: 0.2, camber: -2, steeringAngle: 60 },
       tires: { temp: 25, wear: 100 },
@@ -137,6 +142,8 @@ export const useStore = create<GameState>()(
       rpm: 800,
       gear: 1,
       stylePoints: 0,
+      records: { topSpeed: 0, longestDrift: 0, totalStylePoints: 0 },
+      settings: { soundVolume: 0.8, graphicsQuality: 'high', steeringSensitivity: 1.0 },
       dragStats: { active: false, startTime: null, finishTime: null, time0to100: null, quarterMileTime: null },
       activeMission: { id: 'drift-master', title: 'درفت لمسافة 50 متر', reward: 5000, target: 50, progress: 0 },
 
@@ -148,6 +155,7 @@ export const useStore = create<GameState>()(
       updateEngine: (updates) => set((state) => ({ engine: { ...state.engine, ...updates } })),
       updateVisuals: (updates) => set((state) => ({ visuals: { ...state.visuals, ...updates } })),
       updateSuspension: (updates) => set((state) => ({ suspension: { ...state.suspension, ...updates } })),
+      updateSettings: (updates) => set((state) => ({ settings: { ...state.settings, ...updates } })),
       updateTireStats: (updates) => set((state) => ({ tires: { ...state.tires, ...updates } })),
       addDamage: (amount) => set((state) => ({ damage: Math.min(100, state.damage + amount) })),
       repairCar: () => set((state) => ({ damage: 0, money: state.money - 1000 })),
@@ -158,11 +166,22 @@ export const useStore = create<GameState>()(
       addStylePoints: (points) => set((state) => {
          const newPoints = state.stylePoints + points;
          const cashBonus = Math.floor(points / 10);
-         return { stylePoints: newPoints, money: state.money + cashBonus };
+         const total = state.records.totalStylePoints + points;
+         return { 
+           stylePoints: newPoints, 
+           money: state.money + cashBonus,
+           records: { ...state.records, totalStylePoints: total }
+         };
       }),
 
-      checkMissions: (_speed, drift) => {
-        const { activeMission } = get();
+      checkMissions: (speed, drift) => {
+        const { activeMission, records } = get();
+        
+        // Update top speed record
+        if (speed > records.topSpeed) {
+          set({ records: { ...records, topSpeed: speed } });
+        }
+
         if (!activeMission) return;
         if (drift > 10) {
            set({ activeMission: { ...activeMission, progress: Math.min(activeMission.target, activeMission.progress + 1) } });
@@ -181,6 +200,6 @@ export const useStore = create<GameState>()(
          return state.ownedParts.includes(id);
       },
     }),
-    { name: 'hardcore-sim-storage-ultimate-v2' }
+    { name: 'hardcore-sim-storage-ultimate-final' }
   )
 );
