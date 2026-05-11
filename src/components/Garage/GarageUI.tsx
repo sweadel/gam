@@ -1,10 +1,10 @@
 import { useStore, PARTS_DATABASE } from '../../store/useStore';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Settings, Tool, Wind, Activity, Save } from 'lucide-react';
+import { Settings, Tool, Wind, Activity, Save, Wallet, CheckCircle } from 'lucide-react';
 import { useState } from 'react';
 
 export function GarageUI() {
-  const { mode, engine, suspension, updateEngine, updateSuspension } = useStore();
+  const { mode, engine, suspension, money, ownedParts, updateEngine, updateSuspension, buyPart } = useStore();
   const [activeTab, setActiveTab] = useState<'engine' | 'suspension' | 'stats'>('engine');
 
   if (mode !== 'garage') return null;
@@ -15,16 +15,61 @@ export function GarageUI() {
     (PARTS_DATABASE.intake as any)[engine.intakeType]?.hp + 
     (PARTS_DATABASE.turbo as any)[engine.turboSize]?.hp;
 
+  const PartSelector = ({ title, category, currentId, onSelect }: any) => {
+    return (
+      <div className="part-section">
+        <label>{title}</label>
+        <div className="part-grid">
+          {Object.entries(PARTS_DATABASE[category]).map(([id, data]: [string, any]) => {
+            const isOwned = ownedParts.includes(id);
+            const isActive = currentId === id;
+            
+            return (
+              <button 
+                key={id}
+                className={`part-card ${isActive ? 'active' : ''} ${!isOwned ? 'locked' : ''}`}
+                onClick={() => {
+                  if (isOwned) {
+                    onSelect(id);
+                  } else {
+                    if (buyPart(id, data.price)) {
+                       onSelect(id);
+                    }
+                  }
+                }}
+              >
+                <div className="part-info">
+                  <span className="part-label">{data.label}</span>
+                  {!isOwned && <span className="part-price">${data.price.toLocaleString()}</span>}
+                  {isOwned && isActive && <CheckCircle size={14} className="owned-icon" />}
+                </div>
+                {data.hp > 0 && <div className="part-stat">+{data.hp} HP</div>}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="garage-overlay">
       <motion.div 
-        initial={{ x: -400 }}
+        initial={{ x: -450 }}
         animate={{ x: 0 }}
         className="garage-sidebar glass-panel"
       >
         <div className="garage-header">
-          <h2><Tool /> المختبر الميكانيكي</h2>
-          <div className="hp-badge">{hp} HP</div>
+          <div className="header-top">
+            <h2><Tool /> المختبر الميكانيكي</h2>
+            <div className="money-display">
+               <Wallet size={16} /> ${money.toLocaleString()}
+            </div>
+          </div>
+          <div className="hp-meter">
+             <div className="hp-value">{hp} <span>HP</span></div>
+             <div className="hp-bar-bg"><div className="hp-bar-fill" style={{ width: `${(hp/1000)*100}%` }}></div></div>
+          </div>
         </div>
 
         <div className="garage-tabs">
@@ -35,49 +80,35 @@ export function GarageUI() {
 
         <div className="garage-content">
           {activeTab === 'engine' && (
-            <div className="parts-list">
-              <div className="part-item">
-                <label>الكرنك (Crankshaft)</label>
-                <select 
-                  value={engine.crankshaft} 
-                  onChange={(e) => updateEngine({ crankshaft: e.target.value as any })}
-                >
-                  {Object.entries(PARTS_DATABASE.crankshaft).map(([id, data]) => (
-                    <option key={id} value={id}>{data.label}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="part-item">
-                <label>نظام التنفس (Intake)</label>
-                <select 
-                  value={engine.intakeType} 
-                  onChange={(e) => updateEngine({ intakeType: e.target.value as any })}
-                >
-                  {Object.entries(PARTS_DATABASE.intake).map(([id, data]) => (
-                    <option key={id} value={id}>{data.label}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="part-item">
-                <label>نظام التربو (Turbocharger)</label>
-                <select 
-                  value={engine.turboSize} 
-                  onChange={(e) => updateEngine({ turboSize: e.target.value as any })}
-                >
-                  {Object.entries(PARTS_DATABASE.turbo).map(([id, data]) => (
-                    <option key={id} value={id}>{data.label}</option>
-                  ))}
-                </select>
-              </div>
+            <div className="parts-scroll">
+              <PartSelector 
+                title="الكرنك (Crankshaft)" 
+                category="crankshaft" 
+                currentId={engine.crankshaft}
+                onSelect={(id: string) => updateEngine({ crankshaft: id })}
+              />
+              <PartSelector 
+                title="نظام التنفس (Intake)" 
+                category="intake" 
+                currentId={engine.intakeType}
+                onSelect={(id: string) => updateEngine({ intakeType: id })}
+              />
+              <PartSelector 
+                title="نظام التربو (Turbocharger)" 
+                category="turbo" 
+                currentId={engine.turboSize}
+                onSelect={(id: string) => updateEngine({ turboSize: id })}
+              />
             </div>
           )}
 
           {activeTab === 'suspension' && (
             <div className="parts-list">
               <div className="part-item">
-                <label>زاوية الالتفاف: {suspension.steeringAngle}°</label>
+                <div className="stat-header">
+                  <label>زاوية الالتفاف</label>
+                  <span>{suspension.steeringAngle}°</span>
+                </div>
                 <input 
                   type="range" min="30" max="75" step="5" 
                   value={suspension.steeringAngle}
@@ -85,7 +116,10 @@ export function GarageUI() {
                 />
               </div>
               <div className="part-item">
-                <label>قساوة المساعدات: {suspension.stiffness}</label>
+                <div className="stat-header">
+                  <label>قساوة المساعدات</label>
+                  <span>{suspension.stiffness}</span>
+                </div>
                 <input 
                   type="range" min="20" max="100" 
                   value={suspension.stiffness}

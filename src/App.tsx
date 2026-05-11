@@ -79,10 +79,15 @@ function DriveHUD() {
   const rpm = useStore((state) => state.rpm);
   const gear = useStore((state) => state.gear);
   const stylePoints = useStore((state) => state.stylePoints);
+  const money = useStore((state) => state.money);
   
   return (
     <div className="drive-hud-container">
       <div className="style-score glass-panel">
+        <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', marginBottom: 5 }}>
+           <span className="score-label">الرصيد</span>
+           <span className="score-label" style={{ color: '#4ade80' }}>${money.toLocaleString()}</span>
+        </div>
         <span className="score-label">نقاط الأسلوب</span>
         <span className="score-value">{stylePoints.toLocaleString()}</span>
       </div>
