@@ -112,7 +112,7 @@ export const useStore = create<GameState>()(
     (set, get) => ({
       mode: 'menu',
       selectedCar: CARS_DATABASE[0],
-      environment: 'circle',
+      environment: 'city',
       weather: 'clear',
       camera: 'chase',
       engine: {
