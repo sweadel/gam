@@ -12,11 +12,9 @@ export function EngineSound() {
   const gainNode = useRef<GainNode | null>(null);
   const filterNode = useRef<BiquadFilterNode | null>(null);
   
-  // Turbo Noise Ref
   const turboOsc = useRef<OscillatorNode | null>(null);
   const turboGain = useRef<GainNode | null>(null);
   
-  // Last values for blow-off logic
   const lastRPM = useRef(rpm);
   const lastGear = useRef(gear);
 
@@ -25,7 +23,6 @@ export function EngineSound() {
       if (!audioContext.current) {
         audioContext.current = new (window.AudioContext || (window as any).webkitAudioContext)();
         
-        // Base Engine
         oscillator.current = audioContext.current.createOscillator();
         oscillator.current.type = 'sawtooth';
         
@@ -40,7 +37,6 @@ export function EngineSound() {
         filterNode.current.connect(gainNode.current);
         gainNode.current.connect(audioContext.current.destination);
 
-        // Turbo Whistle
         turboOsc.current = audioContext.current.createOscillator();
         turboOsc.current.type = 'sine';
         turboGain.current = audioContext.current.createGain();
@@ -68,23 +64,19 @@ export function EngineSound() {
     }
 
     const now = audioContext.current.currentTime;
-    
-    // 1. Base Engine Pitch
     const freq = 30 + (rpm / 8000) * 150;
     oscillator.current.frequency.setTargetAtTime(freq, now, 0.05);
     gainNode.current!.gain.setTargetAtTime(0.1, now, 0.1);
 
-    // 2. Turbo Whistle
     if (turboSize !== 'none' && turboOsc.current && turboGain.current) {
       const tFreq = 2000 + (rpm / 8000) * 3000;
       turboOsc.current.frequency.setTargetAtTime(tFreq, now, 0.1);
-      
       const tVolume = (rpm > 3000) ? (rpm / 8000) * 0.1 : 0;
       turboGain.current.gain.setTargetAtTime(tVolume, now, 0.1);
 
-      // 3. Blow-off Logic (Sutututu)
       if (lastRPM.current > rpm + 1000 || lastGear.current !== gear) {
          playBlowOff();
+         if (rpm > 6000) playPop();
       }
     }
 
@@ -95,8 +87,6 @@ export function EngineSound() {
   const playBlowOff = () => {
     if (!audioContext.current) return;
     const now = audioContext.current.currentTime;
-    
-    // Quick bursts of white noise for the "sututu"
     for (let i = 0; i < 4; i++) {
       const time = now + i * 0.08;
       const noise = audioContext.current.createBufferSource();
@@ -104,21 +94,39 @@ export function EngineSound() {
       const buffer = audioContext.current.createBuffer(1, bufferSize, audioContext.current.sampleRate);
       const data = buffer.getChannelData(0);
       for (let j = 0; j < bufferSize; j++) data[j] = Math.random() * 2 - 1;
-      
       noise.buffer = buffer;
       const g = audioContext.current.createGain();
       const f = audioContext.current.createBiquadFilter();
       f.type = 'bandpass';
       f.frequency.value = 3000 - i * 400;
-      
       g.gain.setValueAtTime(0.15 / (i + 1), time);
       g.gain.exponentialRampToValueAtTime(0.01, time + 0.05);
-      
       noise.connect(f);
       f.connect(g);
       g.connect(audioContext.current.destination);
       noise.start(time);
     }
+  };
+
+  const playPop = () => {
+    if (!audioContext.current) return;
+    const now = audioContext.current.currentTime;
+    const noise = audioContext.current.createBufferSource();
+    const bufferSize = audioContext.current.sampleRate * 0.05;
+    const buffer = audioContext.current.createBuffer(1, bufferSize, audioContext.current.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let j = 0; j < bufferSize; j++) data[j] = Math.random() * 2 - 1;
+    noise.buffer = buffer;
+    const g = audioContext.current.createGain();
+    const f = audioContext.current.createBiquadFilter();
+    f.type = 'lowpass';
+    f.frequency.value = 500;
+    g.gain.setValueAtTime(0.3, now);
+    g.gain.exponentialRampToValueAtTime(0.01, now + 0.03);
+    noise.connect(f);
+    f.connect(g);
+    g.connect(audioContext.current.destination);
+    noise.start(now);
   };
 
   return null;
