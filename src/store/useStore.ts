@@ -12,7 +12,8 @@ interface EngineConfig {
 interface VisualConfig {
   bodyKit: 'stock' | 'widebody' | 'drift-spec';
   rims: 'standard' | 'deep-dish';
-  neon: string; // hex color or 'none'
+  neon: string; 
+  paintColor: string;
 }
 
 interface CarType {
@@ -58,8 +59,6 @@ export const PARTS_DATABASE: any = {
     'none': { label: 'بدون نيون', color: 'none', price: 0 },
     'red': { label: 'نيون أحمر', color: '#ff0000', price: 2000 },
     'blue': { label: 'نيون أزرق', color: '#0000ff', price: 2000 },
-    'green': { label: 'نيون أخضر', color: '#00ff00', price: 2000 },
-    'purple': { label: 'نيون بنفسجي', color: '#ff00ff', price: 2000 },
   }
 };
 
@@ -67,11 +66,15 @@ interface GameState {
   mode: 'menu' | 'garage' | 'drive';
   selectedCar: CarType;
   environment: 'circle' | 'city' | 'drag' | 'touge';
+  weather: 'clear' | 'rain' | 'fog';
+  camera: 'chase' | 'cockpit';
   engine: EngineConfig;
   visuals: VisualConfig;
   suspension: { stiffness: number, height: number, camber: number, steeringAngle: number };
   tires: { temp: number, wear: number };
+  damage: number;
   money: number;
+  nitroLevel: number;
   ownedParts: string[];
   rpm: number;
   gear: number;
@@ -83,23 +86,25 @@ interface GameState {
     time0to100: number | null;
     quarterMileTime: number | null;
   };
+  activeMission: { id: string, title: string, reward: number, target: number, progress: number } | null;
+  
   setMode: (mode: 'menu' | 'garage' | 'drive') => void;
   setSelectedCar: (car: CarType) => void;
   setEnvironment: (env: 'circle' | 'city' | 'drag' | 'touge') => void;
+  setWeather: (w: 'clear' | 'rain' | 'fog') => void;
+  setCamera: (c: 'chase' | 'cockpit') => void;
   updateEngine: (updates: Partial<EngineConfig>) => void;
   updateVisuals: (updates: Partial<VisualConfig>) => void;
   updateSuspension: (updates: any) => void;
   updateTireStats: (updates: Partial<{ temp: number, wear: number }>) => void;
   addStylePoints: (points: number) => void;
+  addDamage: (amount: number) => void;
+  repairCar: () => void;
+  useNitro: (amount: number) => void;
   buyPart: (id: string, price: number) => boolean;
   updateRPM: (rpm: number, gear: number) => void;
-  updateDragStats: (updates: Partial<{
-    active: boolean;
-    startTime: number | null;
-    finishTime: number | null;
-    time0to100: number | null;
-    quarterMileTime: number | null;
-  }>) => void;
+  updateDragStats: (updates: Partial<{ active: boolean; startTime: number | null; finishTime: number | null; time0to100: number | null; quarterMileTime: number | null; }>) => void;
+  checkMissions: (currentSpeed: number, currentDrift: number) => void;
 }
 
 export const useStore = create<GameState>()(
@@ -108,6 +113,8 @@ export const useStore = create<GameState>()(
       mode: 'menu',
       selectedCar: CARS_DATABASE[0],
       environment: 'circle',
+      weather: 'clear',
+      camera: 'chase',
       engine: {
         crankshaft: 'heavy-duty',
         intakeType: 'standard',
@@ -119,43 +126,52 @@ export const useStore = create<GameState>()(
         bodyKit: 'stock',
         rims: 'standard',
         neon: 'none',
+        paintColor: '#ff4d4d',
       },
-      suspension: {
-        stiffness: 50,
-        height: 0.2,
-        camber: -2,
-        steeringAngle: 60,
-      },
-      tires: {
-        temp: 25,
-        wear: 100,
-      },
-      money: 50000, 
+      suspension: { stiffness: 50, height: 0.2, camber: -2, steeringAngle: 60 },
+      tires: { temp: 25, wear: 100 },
+      damage: 0,
+      money: 100000,
+      nitroLevel: 100,
       ownedParts: ['heavy-duty', 'standard', 'none', 'stock'],
       rpm: 800,
       gear: 1,
       stylePoints: 0,
-      dragStats: {
-        active: false,
-        startTime: null,
-        finishTime: null,
-        time0to100: null,
-        quarterMileTime: null,
-      },
+      dragStats: { active: false, startTime: null, finishTime: null, time0to100: null, quarterMileTime: null },
+      activeMission: { id: 'drift-master', title: 'درفت لمسافة 50 متر', reward: 5000, target: 50, progress: 0 },
+
       setMode: (mode) => set({ mode }),
-      setSelectedCar: (car) => set({ selectedCar: car }),
+      setSelectedCar: (car) => set({ selectedCar: car, visuals: { ...get().visuals, paintColor: car.color } }),
       setEnvironment: (env) => set({ environment: env }),
+      setWeather: (weather) => set({ weather }),
+      setCamera: (camera) => set({ camera }),
       updateEngine: (updates) => set((state) => ({ engine: { ...state.engine, ...updates } })),
       updateVisuals: (updates) => set((state) => ({ visuals: { ...state.visuals, ...updates } })),
       updateSuspension: (updates) => set((state) => ({ suspension: { ...state.suspension, ...updates } })),
       updateTireStats: (updates) => set((state) => ({ tires: { ...state.tires, ...updates } })),
+      addDamage: (amount) => set((state) => ({ damage: Math.min(100, state.damage + amount) })),
+      repairCar: () => set((state) => ({ damage: 0, money: state.money - 1000 })),
+      useNitro: (amount) => set((state) => ({ nitroLevel: Math.max(0, state.nitroLevel - amount) })),
       updateRPM: (rpm, gear) => set({ rpm, gear }),
       updateDragStats: (updates) => set((state) => ({ dragStats: { ...state.dragStats, ...updates } })),
+      
       addStylePoints: (points) => set((state) => {
          const newPoints = state.stylePoints + points;
          const cashBonus = Math.floor(points / 10);
          return { stylePoints: newPoints, money: state.money + cashBonus };
       }),
+
+      checkMissions: (_speed, drift) => {
+        const { activeMission } = get();
+        if (!activeMission) return;
+        if (drift > 10) {
+           set({ activeMission: { ...activeMission, progress: Math.min(activeMission.target, activeMission.progress + 1) } });
+           if (get().activeMission && get().activeMission!.progress >= activeMission.target) {
+              set({ money: get().money + activeMission.reward, activeMission: null });
+           }
+        }
+      },
+
       buyPart: (id, price) => {
          const state = get();
          if (state.money >= price && !state.ownedParts.includes(id)) {
@@ -165,17 +181,6 @@ export const useStore = create<GameState>()(
          return state.ownedParts.includes(id);
       },
     }),
-    {
-      name: 'hardcore-sim-storage-pro',
-      partialize: (state) => ({ 
-        engine: state.engine, 
-        visuals: state.visuals,
-        suspension: state.suspension, 
-        selectedCar: state.selectedCar,
-        money: state.money,
-        ownedParts: state.ownedParts,
-        stylePoints: state.stylePoints
-      }),
-    }
+    { name: 'hardcore-sim-storage-ultimate-v2' }
   )
 );

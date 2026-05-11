@@ -1,35 +1,43 @@
-import { useRef, useEffect } from 'react';
+import { useBox, useRaycastVehicle } from '@react-three/cannon';
 import { useFrame } from '@react-three/fiber';
-import { useRaycastVehicle, useBox } from '@react-three/cannon';
-import { useStore, PARTS_DATABASE } from '../store/useStore';
-import { useKeyboard } from '../hooks/useKeyboard';
+import { useEffect, useRef } from 'react';
+import { useStore } from '../store/useStore';
 import { CarVisual } from '../components/Game/CarVisual';
 import { ChaseCamera } from '../components/Game/ChaseCamera';
 import { TireSmoke } from '../components/Game/TireSmoke';
 import { DragController } from '../components/Game/DragController';
-import * as THREE from 'three';
 
 export function Vehicle() {
-  const { engine, suspension, mode } = useStore();
-  const controls = useKeyboard();
-
-  // 1. Precise Physics Body
+  const { 
+    mode, 
+    suspension,
+    damage, 
+    addDamage, 
+    nitroLevel, 
+    useNitro, 
+    checkMissions, 
+    camera,
+    updateRPM
+  } = useStore();
+  
   const [chassisBody, chassisApi] = useBox(() => ({
     allowSleep: false,
     args: [1.8, 0.6, 4],
-    mass: 1400, // Heavier for better stability
-    position: [0, 2, 0],
-    linearDamping: 0.1,
-    angularDamping: 0.5,
-  }), useRef<THREE.Group>(null));
+    mass: 1500,
+    onCollide: (e) => {
+      const impact = e.contact.impactVelocity;
+      if (impact > 5) addDamage(Math.floor(impact / 2));
+    },
+    position: [0, 1, 0],
+  }));
 
-  const wheels = [useRef<THREE.Group>(null), useRef<THREE.Group>(null), useRef<THREE.Group>(null), useRef<THREE.Group>(null)];
+  const velocity = useRef([0, 0, 0]);
+  useEffect(() => chassisApi.velocity.subscribe((v) => (velocity.current = v)), [chassisApi]);
 
-  // 2. Advanced Wheel Physics
   const wheelInfo = {
     radius: 0.38,
     directionLocal: [0, -1, 0] as [number, number, number],
-    suspensionStiffness: suspension.stiffness + 20, // Stiffer for drift
+    suspensionStiffness: suspension.stiffness + 20,
     suspensionRestLength: 0.25,
     maxSuspensionForce: 100000,
     maxSuspensionTravel: 0.3,
@@ -39,7 +47,7 @@ export function Vehicle() {
     chassisConnectionPointLocal: [1, 0, 1] as [number, number, number],
     useCustomSlidingFrictionForce: true,
     customSlidingFrictionForce: 0.8,
-    frictionSlip: 1.5, // Lower for more drift
+    frictionSlip: 1.5,
     rollInfluence: 0.01,
   };
 
@@ -52,114 +60,106 @@ export function Vehicle() {
 
   const [vehicle, vehicleApi] = useRaycastVehicle(() => ({
     chassisBody,
-    wheels,
+    wheels: [useRef(null), useRef(null), useRef(null), useRef(null)] as any,
     wheelInfos,
-  }), useRef<THREE.Group>(null));
+  }));
 
-  const velocity = useRef([0, 0, 0]);
+  const controls = useRef({ forward: false, backward: false, left: false, right: false, brake: false, reset: false, nitro: false });
+
   useEffect(() => {
-    return chassisApi.velocity.subscribe((v) => (velocity.current = v));
-  }, [chassisApi]);
-
-  // Transmission Logic
-  const gearRatios = [3.5, 2.3, 1.5, 1.2, 1.0, 0.8];
-  const currentGear = useRef(0);
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'w' || e.key === 'ArrowUp') controls.current.forward = true;
+      if (e.key === 's' || e.key === 'ArrowDown') controls.current.backward = true;
+      if (e.key === 'a' || e.key === 'ArrowLeft') controls.current.left = true;
+      if (e.key === 'd' || e.key === 'ArrowRight') controls.current.right = true;
+      if (e.key === ' ') controls.current.brake = true;
+      if (e.key === 'r') controls.current.reset = true;
+      if (e.key === 'Shift') controls.current.nitro = true;
+    };
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.key === 'w' || e.key === 'ArrowUp') controls.current.forward = false;
+      if (e.key === 's' || e.key === 'ArrowDown') controls.current.backward = false;
+      if (e.key === 'a' || e.key === 'ArrowLeft') controls.current.left = false;
+      if (e.key === 'd' || e.key === 'ArrowRight') controls.current.right = false;
+      if (e.key === ' ') controls.current.brake = false;
+      if (e.key === 'r') controls.current.reset = false;
+      if (e.key === 'Shift') controls.current.nitro = false;
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, []);
 
   useFrame(() => {
     if (mode !== 'drive') return;
 
-    const { forward, backward, left, right, brake, reset } = controls;
+    const { forward, backward, left, right, brake, reset, nitro } = controls.current;
+    
+    // Performance Penalty from Damage
+    const damageFactor = 1 - (damage / 200); 
+    let engineForce = (forward ? 2000 : backward ? -1000 : 0) * damageFactor;
+    
+    // Nitro Boost
+    if (nitro && nitroLevel > 0 && forward) {
+       engineForce += 3000;
+       useNitro(0.5);
+    }
+
+    const steerAngle = (left ? 1 : right ? -1 : 0) * (suspension.steeringAngle * (Math.PI / 180));
+
+    vehicleApi.applyEngineForce(engineForce, 2);
+    vehicleApi.applyEngineForce(engineForce, 3);
+    vehicleApi.setSteeringValue(steerAngle, 0);
+    vehicleApi.setSteeringValue(steerAngle, 1);
+    vehicleApi.setBrake(brake ? 100 : 0, 0);
+    vehicleApi.setBrake(brake ? 100 : 1, 1);
+    vehicleApi.setBrake(brake ? 50 : 2, 2);
+    vehicleApi.setBrake(brake ? 50 : 3, 3);
 
     if (reset) {
       chassisApi.position.set(0, 2, 0);
-      chassisApi.velocity.set(0, 0, 0);
       chassisApi.rotation.set(0, 0, 0);
+      chassisApi.velocity.set(0, 0, 0);
+      chassisApi.angularVelocity.set(0, 0, 0);
     }
 
-    const speed = Math.sqrt(velocity.current[0] ** 2 + velocity.current[1] ** 2 + velocity.current[2] ** 2);
-    const kmh = speed * 3.6;
+    const speed = Math.sqrt(velocity.current[0]**2 + velocity.current[2]**2) * 3.6;
+    const currentRPM = 800 + (speed % 50) * 150 + (forward ? 2000 : 0);
+    updateRPM(currentRPM, Math.floor(speed / 40) + 1);
 
-    // Advanced Mechanical Equation
-    const crankBonus = (PARTS_DATABASE.crankshaft as any)[engine.crankshaft]?.hp || 0;
-    const intakeBonus = (PARTS_DATABASE.intake as any)[engine.intakeType]?.hp || 0;
-    const turboBonus = (PARTS_DATABASE.turbo as any)[engine.turboSize]?.torque || 0;
-    
-    const basePower = 150 + crankBonus + intakeBonus;
-    const totalTorque = (basePower + turboBonus) * 1.5; // Scale factor
+    const driftFactor = Math.abs(velocity.current[0]);
+    checkMissions(speed, driftFactor);
+  });
 
-    const idealGear = Math.floor(kmh / 40);
-    currentGear.current = Math.min(gearRatios.length - 1, Math.max(0, idealGear));
-    const gearRatio = gearRatios[currentGear.current];
-    
-    const force = (forward ? 1 : backward ? -1 : 0) * totalTorque * gearRatio;
-    const steer = (left ? 1 : right ? -1 : 0) * (suspension.steeringAngle * (Math.PI / 180));
-
-    // Apply Engine Force (RWD)
-    for (let i = 2; i < 4; i++) vehicleApi.applyEngineForce(force, i);
-    for (let i = 0; i < 2; i++) vehicleApi.setSteeringValue(steer, i);
-    
-    // Handbrake / Brake Logic
-    if (brake) {
-      // Handbrake (Spacebar) reduces friction on rear wheels for drift initiation
-      vehicleApi.setBrake(1000, 2);
-      vehicleApi.setBrake(1000, 3);
-    } else {
-      for (let i = 0; i < 4; i++) vehicleApi.setBrake(0, i);
-    }
-
-    // Update Store
-    let rpm = 800 + (kmh % 40) * 150;
-    if (forward && rpm < 7500) rpm += 500;
-    
-    const gameStore = useStore.getState();
-    gameStore.updateRPM(Math.min(8000, rpm), currentGear.current + 1);
-
-    const lateralSpeed = Math.abs(velocity.current[0]); 
-    if (lateralSpeed > 2.5 && speed > 5) {
-      gameStore.addStylePoints(Math.floor(speed * 2));
-      gameStore.updateTireStats({ temp: Math.min(130, gameStore.tires.temp + 0.3) });
-    } else {
-      gameStore.updateTireStats({ temp: Math.max(25, gameStore.tires.temp - 0.15) });
-    }
+  const steerValue = useRef(0);
+  useFrame(() => {
+    const { left, right } = controls.current;
+    steerValue.current = (left ? 1 : right ? -1 : 0) * (suspension.steeringAngle * (Math.PI / 180));
   });
 
   const isDrifting = Math.abs(velocity.current[0]) > 2.5 && (Math.sqrt(velocity.current[0]**2 + velocity.current[2]**2)) > 5;
 
-  const steerValue = useRef(0);
-  useFrame(() => {
-    const { left, right } = controls;
-    steerValue.current = (left ? 1 : right ? -1 : 0) * (suspension.steeringAngle * (Math.PI / 180));
-  });
-
   return (
-    <group ref={vehicle}>
-      <group ref={chassisBody}>
+    <group ref={vehicle as any}>
+      <group ref={chassisBody as any}>
         <CarVisual steeringAngle={steerValue.current} />
-        <ChaseCamera targetRef={chassisBody} />
+        {camera === 'chase' ? <ChaseCamera targetRef={chassisBody} /> : <CockpitCamera />}
         <DragController chassisApi={chassisApi} />
-        
         <TireSmoke active={isDrifting} position={[-0.8, -0.4, -1.4]} />
         <TireSmoke active={isDrifting} position={[0.8, -0.4, -1.4]} />
-        
-        <spotLight
-          position={[0, 0, 2]}
-          angle={0.6}
-          penumbra={0.5}
-          intensity={mode === 'drive' ? 400 : 0}
-          distance={60}
-          castShadow
-          target-position={[0, 0, 10]}
-        />
       </group>
-
-      {wheels.map((wheel, index) => (
-        <group key={index} ref={wheel as any}>
-          <mesh rotation={[0, 0, Math.PI / 2]}>
-            <cylinderGeometry args={[0.38, 0.38, 0.3, 24]} />
-            <meshStandardMaterial color="#050505" />
-          </mesh>
-        </group>
-      ))}
     </group>
   );
 }
+
+function CockpitCamera() {
+  useFrame((state) => {
+    state.camera.position.set(0, 0.8, 0.4);
+    state.camera.lookAt(new THREE.Vector3(0, 0.5, 10));
+  });
+  return null;
+}
+import * as THREE from 'three';

@@ -1,0 +1,121 @@
+/* Ultimate HUD Styles */
+.hud-top-left {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  padding: 15px;
+  min-width: 150px;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.mission-hud {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 10px 20px;
+  text-align: center;
+  min-width: 250px;
+}
+
+.mission-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  color: #ffcc00;
+}
+
+.mission-progress .progress-bar {
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+}
+
+.mission-progress .fill {
+  background: #ffcc00;
+  height: 100%;
+  transition: width 0.3s;
+}
+
+.hud-bottom-left {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.hud-bar-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.status-bar-bg {
+  width: 150px;
+  height: 8px;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.status-bar-bg .fill {
+  height: 100%;
+  transition: width 0.3s;
+}
+
+.status-bar-bg .fill.damage {
+  background: linear-gradient(90deg, #ff4d4d, #ff8080);
+}
+
+.status-bar-bg .fill.nitro {
+  background: linear-gradient(90deg, #3b82f6, #60a5fa);
+}
+
+.camera-hint {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  font-size: 0.7rem;
+  opacity: 0.5;
+  color: #fff;
+}
+
+/* Weather Grid in Garage */
+.weather-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.weather-grid button {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.8rem;
+}
+
+.weather-grid button.active {
+  background: #ff4d4d;
+  border-color: #ff4d4d;
+}
