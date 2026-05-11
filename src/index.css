@@ -140,10 +140,55 @@ body {
   text-shadow: 0 0 10px var(--primary);
 }
 
-.drive-hud {
-  width: 300px;
-  padding: 15px;
-  margin-bottom: 20px;
+.drag-hud {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 250px;
+  padding: 20px;
+  text-align: center;
+  border-top: 3px solid var(--primary);
+}
+
+.time-value {
+  display: block;
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: white;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+.drag-splits {
+  margin-top: 15px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 10px;
+}
+
+.split-item {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: #888;
+  margin-bottom: 5px;
+}
+
+.split-value {
+  color: white;
+  font-weight: 700;
+}
+
+.drag-ready {
+  margin-top: 10px;
+  color: var(--primary);
+  font-weight: 900;
+  letter-spacing: 5px;
+  animation: blink 0.5s infinite alternate;
+}
+
+@keyframes blink {
+  from { opacity: 1; }
+  to { opacity: 0.3; }
 }
 
 .rpm-meter {

@@ -6,6 +6,7 @@ import { useKeyboard } from '../hooks/useKeyboard';
 import { CarVisual } from '../components/Game/CarVisual';
 import { ChaseCamera } from '../components/Game/ChaseCamera';
 import { TireSmoke } from '../components/Game/TireSmoke';
+import { DragController } from '../components/Game/DragController';
 import * as THREE from 'three';
 
 export function Vehicle() {
@@ -126,11 +127,18 @@ export function Vehicle() {
   const carBrand = useStore((state) => state.selectedCar.brand);
   const isDrifting = Math.abs(velocity.current[0]) > 2.5 && (Math.sqrt(velocity.current[0]**2 + velocity.current[2]**2)) > 5;
 
+  const steerValue = useRef(0);
+  useFrame(() => {
+    const { left, right } = controls;
+    steerValue.current = (left ? 1 : right ? -1 : 0) * (suspension.steeringAngle * (Math.PI / 180));
+  });
+
   return (
     <group ref={vehicle}>
       <group ref={chassisBody}>
-        <CarVisual color={carColor} brand={carBrand} />
+        <CarVisual color={carColor} brand={carBrand} steeringAngle={steerValue.current} />
         <ChaseCamera targetRef={chassisBody} />
+        <DragController chassisApi={chassisApi} />
         
         <TireSmoke active={isDrifting} position={[-0.8, -0.4, -1.4]} />
         <TireSmoke active={isDrifting} position={[0.8, -0.4, -1.4]} />
